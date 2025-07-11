@@ -61,14 +61,14 @@ export const LoginComponent: React.FunctionComponent<LoginComponentType> = () =>
 
     function login() {
         setLoading(true)
-        new AuthService().authenticate(username, password).then((res: AxiosResponse<UserModel>) => {
+         AuthService.authenticate(username, password).then((res: AxiosResponse<UserModel>) => {
                 if (res.status === 200) {
                     setAlerts([...alerts, new FeedbackModel(UUIDv4(), "You are connected", "info", true)])
                     setUser(res.data)
                     history.push("/");
                 }
             }
-        ).catch((err) => {
+        ).catch((err: { toString: () => string; }) => {
             setAlerts([...alerts, new FeedbackModel(UUIDv4(), err.toString(), "error", true)])
             setUsername("");
             setPassword("");
