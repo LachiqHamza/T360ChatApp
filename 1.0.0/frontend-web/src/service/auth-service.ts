@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL, AUTH } from '../config'; // Import from config
+import { API_BASE_URL, AUTH } from '../config';
 import JwtModel from "../model/jwt-model";
 
 const instance = axios.create({
@@ -131,5 +131,7 @@ class AuthService {
     );
   }
 }
-const authService = new AuthServiceImpl();
-export default AuthService;
+
+// Create and export singleton instance
+const authService = new AuthService();
+export default authService;
