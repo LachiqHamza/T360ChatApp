@@ -6,7 +6,7 @@ import Grid from "@material-ui/core/Grid";
 import { CustomTextField } from "../design/partials/custom-material-textfield";
 import Button from "@material-ui/core/Button";
 import { Link, useHistory } from "react-router-dom";
-import authService from "../service/auth-service"; // Updated import (singleton instance)
+import { authService } from "../service/auth-service";
 import { useThemeContext } from "../context/theme-context";
 import { useAuthContext } from "../context/auth-context";
 import UserModel from "../model/user-model";

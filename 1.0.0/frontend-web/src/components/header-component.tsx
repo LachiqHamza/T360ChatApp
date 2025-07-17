@@ -4,7 +4,7 @@ import Typography from "@material-ui/core/Typography";
 import ClearAllIcon from '@material-ui/icons/ClearAll';
 import {Link as RouterLink, useHistory} from "react-router-dom";
 import Button from "@material-ui/core/Button";
-import AuthService from "../service/auth-service";
+import { authService } from '../service/auth-service';
 import {useThemeContext} from "../context/theme-context";
 import {FormControlLabel, Switch} from "@material-ui/core";
 import {useAuthContext} from "../context/auth-context";
@@ -26,13 +26,12 @@ export const HeaderComponent: React.FunctionComponent<HeaderComponentType> = () 
     const [cookie, setCookie] = useCookies();
 
     useEffect(() => {
-        new AuthService().testRoute().then((res: AxiosResponse<UserModel>) => {
+        authService.testRoute().then((res: AxiosResponse<UserModel>) => {
             setUser(res.data)
         }).catch((err) => {
             console.log(err)
         })
     }, [setUser])
-
 
     useEffect(() => {
         setCookie("pref-theme", theme)
@@ -44,11 +43,11 @@ export const HeaderComponent: React.FunctionComponent<HeaderComponentType> = () 
 
     function dispatchLogout(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         event.preventDefault();
-        new AuthService().logout().then(() => {
+        authService.logout().then(() => {
             setUser(undefined);
             history.push("/");
             const temp = [...alerts]
-            temp.push(new FeedbackModel(UUIDv4(), "You log out successfully", "success", true));
+            temp.push(new FeedbackModel(UUIDv4(), "You logged out successfully", "success", true));
             setAlerts(temp)
         }).catch((err: any) => {
             console.log(cookie)

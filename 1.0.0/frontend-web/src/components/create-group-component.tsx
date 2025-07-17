@@ -1,62 +1,86 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
-import {CustomTextField} from "../design/partials/custom-material-textfield";
+import { CustomTextField } from "../design/partials/custom-material-textfield";
 import Button from "@material-ui/core/Button";
-import AuthService from "../service/auth-service";
-import {useHistory} from "react-router-dom";
-import {useThemeContext} from "../context/theme-context";
-import {useAlertContext} from "../context/alert-context";
-import {FeedbackModel} from "../model/feedback-model";
+import authService from '../service/auth-service';
+import { useHistory } from "react-router-dom";
+import { useThemeContext } from "../context/theme-context";
+import { useAlertContext } from "../context/alert-context";
+import { FeedbackModel } from "../model/feedback-model";
 import UUIDv4 from "../utils/uuid-generator";
-
 
 export const CreateGroupComponent = () => {
     const history = useHistory();
     const [groupName, setGroupName] = useState("");
-    const {theme} = useThemeContext();
-    const {alerts, setAlerts} = useAlertContext();
-
+    const { theme } = useThemeContext();
+    const { alerts, setAlerts } = useAlertContext();
+    const [isCreating, setIsCreating] = useState(false);
 
     useEffect(() => {
-        document.title = "Create group | FLM"
+        document.title = "Create group | FLM";
     }, []);
 
-    function handleChange(event: any) {
-        event.preventDefault();
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
         setGroupName(event.target.value);
     }
 
-    function createGroup(event: any) {
-        event.preventDefault();
-        if (groupName !== "") {
-            new AuthService().createGroup(groupName).then(r => {
-                setAlerts([...alerts, new FeedbackModel(UUIDv4(), `Group "${groupName}" has been created successfully`, "success", true)])
-                history.push({
-                    pathname: "/t/messages/" + r.data
-                })
-            }).catch(err => {
-                setAlerts([...alerts, new FeedbackModel(UUIDv4(), `Cannot create group "${groupName}" : ${err.toString()}`, "error", true)])
-            })
+    function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+        if (event.key === 'Enter') {
+            createGroup(event);
         }
     }
 
-    function submitGroupCreation(event: any) {
-        if (event.key === undefined || event.key === 'Enter') {
-            if (groupName === "") {
-                return;
+    async function createGroup(event: React.FormEvent) {
+        event.preventDefault();
+        if (!groupName.trim()) {
+            setAlerts([...alerts, new FeedbackModel(
+                UUIDv4(),
+                "Group name cannot be empty",
+                "error",
+                true
+            )]);
+            return;
+        }
+
+        setIsCreating(true);
+        try {
+            const response = await authService.createGroup(groupName.trim());
+            setAlerts([...alerts, new FeedbackModel(
+                UUIDv4(),
+                `Group "${groupName}" created successfully`,
+                "success",
+                true
+            )]);
+            history.push({
+                pathname: `/t/messages/${response.data}`,
+                state: { groupCreated: true }
+            });
+        } catch (err: unknown) {
+            let errorMessage = "Failed to create group";
+            if (err instanceof Error) {
+                errorMessage = err.message;
+            } else if (typeof err === 'string') {
+                errorMessage = err;
             }
-            createGroup(event)
+            
+            setAlerts([...alerts, new FeedbackModel(
+                UUIDv4(),
+                errorMessage,
+                "error",
+                true
+            )]);
+        } finally {
+            setIsCreating(false);
         }
     }
 
     return (
-        <div className={theme}
-             style={{height: "calc(100% - 64px)", textAlign: "center", paddingTop: "40px"}}>
+        <div className={theme} style={{ height: "calc(100% - 64px)", textAlign: "center", paddingTop: "40px" }}>
             <Container className={"clrcstm"} component="main" maxWidth="xs">
-                <CssBaseline/>
+                <CssBaseline />
                 <div className={"main-register-form clrcstm"}>
                     <Typography className={"clrcstm"} variant="h6">
                         Create a group
@@ -65,27 +89,30 @@ export const CreateGroupComponent = () => {
                 <div className={"clrcstm"}>
                     <Grid className={"clrcstm"} container spacing={2}>
                         <Grid className={"clrcstm"} item xs={12}>
-                            <CustomTextField id={"createGroupMessenger"}
-                                             label={"Type a name for your group"}
-                                             name={"groupName"}
-                                             handleChange={handleChange}
-                                             value={groupName}
-                                             type={"text"}
-                                             keyUp={submitGroupCreation}
-                                             isDarkModeEnable={theme}
-                                             isMultiline={false}/>
+                            <CustomTextField
+                                id={"createGroupMessenger"}
+                                label={"Type a name for your group"}
+                                name={"groupName"}
+                                handleChange={handleChange}
+                                value={groupName}
+                                type={"text"}
+                                keyUp={handleKeyDown}
+                                isDarkModeEnable={theme}
+                                isMultiline={false}
+                            />
                         </Grid>
                         <div>
                             <Grid item xs={12}>
                                 <Button
                                     className={"button-register-form"}
-                                    style={{marginTop: "15px"}}
-                                    onClick={(event) => createGroup(event)}
+                                    style={{ marginTop: "15px" }}
+                                    onClick={createGroup}
                                     fullWidth
                                     variant="outlined"
                                     color="primary"
+                                    disabled={isCreating || !groupName.trim()}
                                 >
-                                    Create
+                                    {isCreating ? "Creating..." : "Create"}
                                 </Button>
                             </Grid>
                         </div>
@@ -93,6 +120,5 @@ export const CreateGroupComponent = () => {
                 </div>
             </Container>
         </div>
-    )
-}
-
+    );
+};

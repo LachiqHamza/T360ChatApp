@@ -11,8 +11,21 @@ const instance = axios.create({
 });
 
 class AuthService {
+  private static _instance: AuthService;
+
+  private constructor() {
+    // Private constructor to prevent direct instantiation
+  }
+
+  public static getInstance(): AuthService {
+    if (!AuthService._instance) {
+      AuthService._instance = new AuthService();
+    }
+    return AuthService._instance;
+  }
+
   // Authentication
-  async authenticate(username: string, password: string) {
+  async authenticate(username: string, password: string): Promise<any> {
     try {
       const response = await instance.post(AUTH.LOGIN, new JwtModel(username, password));
       return response.data;
@@ -22,7 +35,7 @@ class AuthService {
   }
 
   // User Registration
-  async register(firstname: string, lastname: string, email: string, password: string) {
+  async register(firstname: string, lastname: string, email: string, password: string): Promise<any> {
     try {
       const response = await instance.post(AUTH.REGISTER, {
         firstname,
@@ -37,10 +50,9 @@ class AuthService {
   }
 
   // Logout
-  async logout() {
+  async logout(): Promise<void> {
     try {
       await instance.post(AUTH.LOGOUT);
-      // Clear client-side auth state
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
     } catch (error) {
@@ -49,7 +61,7 @@ class AuthService {
   }
 
   // Protected Route Test
-  async testRoute() {
+  async testRoute(): Promise<any> {
     try {
       const response = await instance.get("/fetch");
       return response.data;
@@ -59,7 +71,7 @@ class AuthService {
   }
 
   // Group Management
-  async createGroup(groupName: string) {
+  async createGroup(groupName: string): Promise<any> {
     try {
       const response = await instance.post("/groups", { name: groupName });
       return response.data;
@@ -69,7 +81,7 @@ class AuthService {
   }
 
   // Message Handling
-  async fetchMessages(groupId: number) {
+  async fetchMessages(groupId: number): Promise<any> {
     try {
       const response = await instance.get(`/messages/${groupId}`);
       return response.data;
@@ -79,7 +91,7 @@ class AuthService {
   }
 
   // Group Membership
-  async addUserToGroup(userId: number | string, groupId: string) {
+  async addUserToGroup(userId: number | string, groupId: string): Promise<any> {
     try {
       const response = await instance.post(`/groups/${groupId}/members`, { userId });
       return response.data;
@@ -88,25 +100,20 @@ class AuthService {
     }
   }
 
-  // Error Handling
-  private handleError(error: any) {
+  private handleError(error: any): { message: string } {
     if (error.response) {
-      // Server responded with non-2xx status
       console.error('API Error:', error.response.data);
       return error.response.data;
     } else if (error.request) {
-      // Request made but no response
       console.error('Network Error:', error.request);
       return { message: 'Network Error: Could not connect to server' };
     } else {
-      // Other errors
       console.error('Error:', error.message);
       return { message: error.message };
     }
   }
 
-  // Add interceptors for auth token if needed
-  static setupInterceptors(store: any) {
+  static setupInterceptors(store: any): void {
     instance.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem('authToken');
@@ -122,7 +129,6 @@ class AuthService {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          // Handle unauthorized (e.g., redirect to login)
           store.dispatch({ type: 'LOGOUT' });
           window.location.href = '/login';
         }
@@ -132,6 +138,6 @@ class AuthService {
   }
 }
 
-// Create and export singleton instance
-const authService = new AuthService();
-export default authService;
+// Export both the class and the singleton instance
+export const authService = AuthService.getInstance();
+export default AuthService;

@@ -32,15 +32,15 @@
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0",
     "sockjs-client": "^1.5.0",
-    "styled-components": "^6.1.19",
-    "typescript": "^4.3.5"
+    "styled-components": "^6.1.19"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "eslint": "7.32.0",
     "eslint-config-react-app": "6.0.0",
-    "eslint-plugin-jest": "24.7.0"
+    "eslint-plugin-jest": "24.7.0",
+    "typescript": "^4.4.4"
   },
   "resolutions": {
     "eslint": "7.32.0"
